@@ -1,3 +1,4 @@
+// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -6,7 +7,8 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    historyApiFallback: true, // This ensures all routes fallback to index.html
+    // Use this exact syntax in Vite
+    historyApiFallback: true,
   },
   base: "/",
 })
