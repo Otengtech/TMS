@@ -48,3 +48,4 @@ coverage/
 __snapshots__
 *.test.js
 *.spec.js
+.vercel

@@ -1,55 +1,32 @@
+// config/database.js
 import mongoose from 'mongoose';
-import dotenv from "dotenv";
 
-// Load env vars
-dotenv.config();
-
-// Cache the database connection
-let cachedConnection = null;
+let cached = null;
 
 const connectDB = async () => {
-  // Check if MONGODB_URI exists
   if (!process.env.MONGODB_URI) {
-    console.error('MONGODB_URI is not defined in environment variables');
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('MONGODB_URI is not defined');
-    } else {
-      process.exit(1);
-    }
+    throw new Error('MONGODB_URI is required');
   }
 
-  // If we're in a serverless environment (Vercel) and have a cached connection, use it
-  if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-    if (cachedConnection) {
-      console.log('Using cached database connection');
-      return cachedConnection;
-    }
+  // Return cached connection if exists
+  if (cached) {
+    return cached;
   }
 
   try {
     console.log('Connecting to MongoDB...');
-    
-    // Mongoose 6+ doesn't need the deprecated options
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      // optional settings for serverless
+      autoIndex: true,
+      bufferCommands: false
+    });
+
     console.log(`MongoDB Connected: ${conn.connection.host}`);
-    console.log(`Database: ${conn.connection.name}`);
-    
-    // Cache the connection for serverless
-    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-      cachedConnection = conn;
-    }
-    
+    cached = conn;
     return conn;
   } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error.message}`);
-    
-    // In production, throw the error instead of exiting
-    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-      throw error;
-    } else {
-      process.exit(1);
-    }
+    console.error('MongoDB connection error:', error);
+    throw error; // don’t exit; throw to let serverless handle
   }
 };
 
